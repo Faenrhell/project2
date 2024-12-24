@@ -1,1 +1,72 @@
+name: CI Pipeline
 
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    name: Build and Test Services
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+          POSTGRES_DB: mydatabase
+        options: >-
+          --health-cmd="pg_isready -U myuser"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker Buildx (for multi-container support)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Log in to Docker Hub (optional, if pushing images to Docker Hub)
+      - name: Log in to Docker Hub
+        if: secrets.DOCKER_USERNAME && secrets.DOCKER_PASSWORD
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Build Docker Compose services
+      - name: Build Docker Compose services
+        run: docker-compose build
+
+      # Step 5: Start Docker Compose services
+      - name: Start Docker Compose services
+        run: docker-compose up -d
+
+      # Step 6: Run tests for backend_rds
+      - name: Run tests for backend_rds
+        run: docker-compose exec backend_rds python manage.py test
+
+      # Step 7: Run tests for backend_redis
+      - name: Run tests for backend_redis
+        run: docker-compose exec backend_redis python manage.py test
+
+      # Step 8: Stop Docker Compose services
+      - name: Stop Docker Compose services
+        if: always()
+        run: docke
