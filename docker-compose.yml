@@ -24,7 +24,7 @@ services:
       - .env
     depends_on:
       - redis
-  postgres_custom:
+  postgres:
     image: postgres:13
     container_name: postgres  # Custom container name for RDS (PostgreSQL)
     ports:
@@ -36,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  redis_custom:
+  redis:
     image: redis:latest
     container_name: redis  # Custom container name for Redis
     ports:
