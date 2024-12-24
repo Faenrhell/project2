@@ -6,7 +6,7 @@ services:
       context: ./backend_rds
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"  # Map backend_rds to port 8000
+      - "8000:8000"  # Exposes backend_rds on port 8000
     env_file:
       - .env
     depends_on:
@@ -17,7 +17,7 @@ services:
       context: ./backend_redis
       dockerfile: Dockerfile
     ports:
-      - "8001:8001"  # Map backend_redis to port 8001
+      - "8001:8001"  # Exposes backend_redis on port 8001
     env_file:
       - .env
     depends_on:
@@ -28,8 +28,10 @@ services:
     container_name: postgres
     ports:
       - "5432:5432"
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -38,8 +40,7 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-    env_file:
-      - .env
+    environment: {}
 
 volumes:
   postgres_data:
